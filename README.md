@@ -31,6 +31,14 @@ Script | Language | Description
 
 All of my scripts has its own README with requirements, parameters and usage examples and deep explanation why I commit any change.
 
+### PasswordRequest.ps1
+PowerShell script for home workgroup computers (no AD/Azure AD required).
+Generates a one-time random password for the local Administrator account and delivers it to the owner via Gmail. Password expires automatically after 60 minutes and the Administrator account is then disabled.
+Triggered via Task Scheduler by a standard user through a VBScript desktop shortcut.
+
+### PasswordRequest-launcher.vbs
+VBScript launcher that allows a standard user to trigger `PasswordRequest.ps1` via Windows Task Scheduler without requiring admin credentials.
+
 ## Notes
 
 * Never commit secrets, tokens or kubeconfig files — covered by .gitignore
