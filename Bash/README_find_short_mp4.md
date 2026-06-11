@@ -61,3 +61,6 @@ Expected output:
 - Symlinks are not followed (find -type f)
 - Search is recursive by default
 - Zip uses -j, so files are stored flat in the zip root.
+
+Workflow:
+find > ffprobe (filtruj długość) > md5 (filtruj duplikaty) > TMP_LIST > zip > Desktop
