@@ -1,0 +1,73 @@
+import json
+import os
+import sys
+import boto3
+
+REGION = os.getenv("AWS_REGION", "eu-west-1")
+ENDPOINT = os.getenv("KINESIS_ENDPOINT_URL")  # localstack URL, leave if for AWS
+
+
+def get_client():
+    return boto3.client("kinesis", region_name=REGION, endpoint_url=ENDPOINT)
+
+
+def _encode(rec):
+    if isinstance(rec, bytes):
+        return rec
+    if isinstance(rec, str):
+        return rec.encode()
+    return json.dumps(rec).encode()
+
+
+def produce(stream, records, partition_key="pk", client=None):
+    client = client or get_client()
+    
+    entries = [{"Data": _encode(r), "PartitionKey": partition_key} for r in records]
+    resp = client.put_records(StreamName=stream, Records=entries)
+    return resp.get("FailedRecordCount", 0)
+
+
+def consume(stream, limit=100, it_type="TRIM_HORIZON", client=None):
+    client = client or get_client()
+    
+    # Shards take off
+    desc = client.describe_stream(StreamName=stream)
+    shards = desc["StreamDescription"]["Shards"]
+    
+    out = []
+    for shard in shards:
+        shard_id = shard["ShardId"]
+        it = client.get_shard_iterator(
+            StreamName=stream, ShardId=shard_id, ShardIteratorType=it_type
+        )["ShardIterator"]
+
+        while it and len(out) < limit:
+            resp = client.get_records(ShardIterator=it, Limit=limit)
+            recs = resp["Records"]
+            it = resp.get("NextShardIterator")
+
+            if not recs:
+                continue  
+
+            out.extend(r["Data"] for r in recs)
+            
+    return out
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python script.py [produce|consume] STREAM [data]")
+        sys.exit(1)
+
+    cmd = sys.argv[1]
+    stream = sys.argv[2]
+
+    if cmd == "produce":
+        payload = sys.argv[3] if len(sys.argv) > 3 else '{"ping":1}'
+        print("failed:", produce(stream, [payload]))
+    elif cmd == "consume":
+        for p in consume(stream):
+            print(p.decode(errors="replace"))
+    else:
+        print("Incorrect command, use produce or consume")
+        sys.exit(1)
