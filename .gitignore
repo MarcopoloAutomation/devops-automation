@@ -217,16 +217,14 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# ========================
 # PowerShell
-# ========================
+
 *.ps1xml
 *.psd1.bak
 Thumbs.db
 
-# ========================
 # Go
-# ========================
+
 *.exe
 *.exe~
 *.dll
@@ -236,9 +234,8 @@ Thumbs.db
 /vendor/
 go.sum
 
-# ========================
 # Kubernetes / Helm
-# ========================
+
 *.kubeconfig
 kubeconfig
 *-secret.yaml
@@ -247,9 +244,8 @@ secrets/
 override.yaml
 values.local.yaml
 
-# ========================
 # Secrets & credentials (CRITICAL)
-# ========================
+
 *.pem
 *.key
 *.p12
@@ -269,9 +265,8 @@ azure-creds*
 gcp-creds*
 aws-creds*
 
-# ========================
 # IDE / OS
-# ========================
+
 .idea/
 .vscode/settings.json
 *.swp
