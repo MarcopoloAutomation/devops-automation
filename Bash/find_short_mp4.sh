@@ -1,5 +1,5 @@
 #!/bin/bash
-# find unique mp4 files shorter than 4 minutes, and zips to desktop
+# Find unique mp4 files shorter than 4 minutes, and zips to desktop
 
 MAX_DURATION=240  # 4 minutes in seconds
 DESKTOP="$HOME/Desktop"
@@ -17,9 +17,24 @@ fi
 
 echo "Scanning $SEARCH_DIR for mp4 files..."
 find "$SEARCH_DIR" -type f -iname "*.mp4" | while read -r file; do
-    # get duration in seconds
+    
     dur=$(ffprobe -v error -show_entries format=duration \
         -of default=noprint_wrappers=1:nokey=1 "$file" 2>/dev/null)
-    dur=${dur%.*}  # strip decimals
+    dur=${dur%.*}
  
     [[ -z "$dur" || "$dur" -ge "$MAX_DURATION" ]] && continue
+
+     hash=$(head -c 1048576 "$file" | md5sum | cut -d' ' -f1)
+    if ! grep -qF "$hash" "$TMP_HASHES"; then
+        echo "$hash" >> "$TMP_HASHES"
+        echo "$file" >> "$TMP_LIST"
+    fi
+done
+count=$(wc -l < "$TMP_LIST")
+if [[ "$count" -eq 0 ]]; then
+    echo "No matching files found"
+    exit 0
+fi
+
+echo "Found $count unique files under 4 min, zipping..."
+mkdir -p "$DESKTOP"
