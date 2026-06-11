@@ -15,3 +15,11 @@ if ! command -v ffprobe &>/dev/null; then
     exit 1
 fi
 
+echo "Scanning $SEARCH_DIR for mp4 files..."
+find "$SEARCH_DIR" -type f -iname "*.mp4" | while read -r file; do
+    # get duration in seconds
+    dur=$(ffprobe -v error -show_entries format=duration \
+        -of default=noprint_wrappers=1:nokey=1 "$file" 2>/dev/null)
+    dur=${dur%.*}  # strip decimals
+ 
+    [[ -z "$dur" || "$dur" -ge "$MAX_DURATION" ]] && continue
